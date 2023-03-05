@@ -23,12 +23,5 @@ public class Movement : MonoBehaviour
         direction *= _speedMove;
 
         _characterController.Move(direction * Time.deltaTime);
-        
-        //transform.Translate(direction * _speedMove * Time.deltaTime);
     }
-
-    //private void OnMove(InputAction inputAction) 
-    //{
-    //    _speedMove = inputAction.IsPressed() ? 1 : 2;
-    //}
 }

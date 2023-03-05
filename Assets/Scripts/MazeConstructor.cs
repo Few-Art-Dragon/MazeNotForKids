@@ -1,16 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class MazeConstructor : MonoBehaviour
 {
     private MazeDataGenerator dataGenerator;
     private MazeMeshGenerator meshGenerator;
 
-    [SerializeField] private Material mazeMat1;
-    [SerializeField] private Material mazeMat2;
-    [SerializeField] private Material startMat;
-    [SerializeField] private Material treasureMat;
+    [SerializeField] private Material groundMazeMaterial;
+    [SerializeField] private Material wallMazeMaterial;
+    [SerializeField] private Material finishMat;
 
     public float hallWidth
     {
@@ -57,7 +57,7 @@ public class MazeConstructor : MonoBehaviour
     }
 
     public void GenerateNewMaze(int sizeRows, int sizeCols,
-    TriggerEventHandler startCallback = null, TriggerEventHandler goalCallback = null)
+    TriggerEventHandler goalCallback = null)
     {
         if (sizeRows % 2 == 0 && sizeCols % 2 == 0)
         {
@@ -77,7 +77,7 @@ public class MazeConstructor : MonoBehaviour
 
         DisplayMaze();
 
-        PlaceStartTrigger(startCallback);
+        
         PlaceGoalTrigger(goalCallback);
     }
 
@@ -96,7 +96,7 @@ public class MazeConstructor : MonoBehaviour
 
         MeshRenderer mr = go.AddComponent<MeshRenderer>();
         mr.allowOcclusionWhenDynamic = true;
-        mr.materials = new Material[2] { mazeMat1, mazeMat2 };
+        mr.materials = new Material[2] { groundMazeMaterial, wallMazeMaterial };
     }
 
     public void DisposeOldMaze()
@@ -149,34 +149,21 @@ public class MazeConstructor : MonoBehaviour
         }
     }
 
-    private void PlaceStartTrigger(TriggerEventHandler callback)
+    private void PlaceGoalTrigger(TriggerEventHandler callback)
     {
         GameObject go = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        go.transform.rotation = new Quaternion(90, 0, 0, 0);
-        go.transform.position = new Vector3(startCol * hallWidth, 1.5f, startRow * hallWidth);
-        go.transform.localScale = new Vector3(5,5,5);
-        go.name = "Start Trigger";
+        go.transform.rotation = new Quaternion(90, 0, 45, 0);
+        go.transform.position = new Vector3(goalCol * hallWidth, 1.8f, goalRow * hallWidth);
+        go.transform.localScale = new Vector3(6, 6, 6);
+        go.name = "Treasure";
         go.tag = "Generated";
 
         go.GetComponent<MeshCollider>().convex = true;
         go.GetComponent<MeshCollider>().isTrigger = true;
-        go.GetComponent<MeshRenderer>().sharedMaterial = startMat;
+        go.GetComponent<MeshRenderer>().sharedMaterial = finishMat;
         go.GetComponent<MeshRenderer>().allowOcclusionWhenDynamic = true;
+        go.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
 
-        TriggerEventRouter tc = go.AddComponent<TriggerEventRouter>();
-        tc.callback = callback;
-    }
-
-    private void PlaceGoalTrigger(TriggerEventHandler callback)
-    {
-        GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        go.transform.position = new Vector3(goalCol * hallWidth, .5f, goalRow * hallWidth);
-        go.name = "Treasure";
-        go.tag = "Generated";
-
-        go.GetComponent<BoxCollider>().isTrigger = true;
-        go.GetComponent<MeshRenderer>().sharedMaterial = treasureMat;
-        go.GetComponent<MeshRenderer>().allowOcclusionWhenDynamic = true;
 
         TriggerEventRouter tc = go.AddComponent<TriggerEventRouter>();
         tc.callback = callback;

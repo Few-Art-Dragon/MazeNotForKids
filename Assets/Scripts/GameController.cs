@@ -16,8 +16,6 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private TMP_Text timeLabel;
     [SerializeField]
-    private TMP_Text scoreLabel;
-    [SerializeField]
     private int _lengthMaze;
     [SerializeField]
     private int _widthMaze;
@@ -28,43 +26,11 @@ public class GameController : MonoBehaviour
     
     private int reduceLimitBy;
 
-    private int score;
-    private bool goalReached;
-
     void Start()
     {
         _FinishText.enabled = false;
         generator = GetComponent<MazeConstructor>();
         StartNewGame();
-    }
-
-    private void StartNewGame()
-    {
-        timeLimit = 200;
-        reduceLimitBy = 5;
-        startTime = DateTime.Now;
-
-        score = 0;
-        scoreLabel.text = score.ToString();
-
-        StartNewMaze();
-    }
-
-    private void StartNewMaze()
-    {
-        generator.GenerateNewMaze(_lengthMaze, _widthMaze, OnStartTrigger, OnGoalTrigger);
-
-        float x = generator.startCol * generator.hallWidth;
-        float y = 1f;
-        float z = generator.startRow * generator.hallWidth;
-        player.transform.position = new Vector3(x, y, z);
-
-        goalReached = false;
-        player.SetActive(true);
-
-        // restart timer
-        timeLimit -= reduceLimitBy;
-        startTime = DateTime.Now;
     }
 
     void Update()
@@ -90,28 +56,48 @@ public class GameController : MonoBehaviour
         }
     }
 
+    private void StartNewGame()
+    {
+        timeLimit = 0;
+        reduceLimitBy = 5;
+        startTime = DateTime.Now;
+
+        StartNewMaze();
+    }
+
+    private void StartNewMaze()
+    {
+        UpDifficult();
+        _FinishText.enabled = false;
+        generator.GenerateNewMaze(_lengthMaze, _widthMaze, OnGoalTrigger);
+
+        float x = generator.startCol * generator.hallWidth;
+        float y = 1f;
+        float z = generator.startRow * generator.hallWidth;
+        player.transform.position = new Vector3(x, y, z);
+
+        player.SetActive(true);
+
+        // restart timer
+        timeLimit -= reduceLimitBy;
+        startTime = DateTime.Now;
+    }
+
+    private void UpDifficult()
+    {
+        _lengthMaze += 2;
+        _widthMaze += 2;
+        timeLimit += 30;
+    }
+
+
+
     private void OnGoalTrigger(GameObject trigger, GameObject other)
     {
-        Debug.Log("Goal!");
-        goalReached = true;
-
-        score += 1;
-        scoreLabel.text = score.ToString();
-
-        Destroy(trigger);
+        _FinishText.enabled = true;
+        Debug.Log("Finish!");
+        player.SetActive(false);
+        
+        Invoke("StartNewMaze", 6);      
     }
-
-    private void OnStartTrigger(GameObject trigger, GameObject other)
-    {
-        if (goalReached)
-        {
-            _FinishText.enabled = true;
-            Debug.Log("Finish!");
-            player.SetActive(false);
-
-            Invoke("StartNewMaze", 10);
-        }
-    }
-
-
 }
